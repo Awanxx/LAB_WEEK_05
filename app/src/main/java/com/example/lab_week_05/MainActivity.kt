@@ -44,7 +44,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun getCatImageResponse() {
         val call = catApiService.searchImages(1, "full")
-        call.enqueue(object : Callback<List<ImageData>> {
+        call.enqueue(object: Callback<List<ImageData>> {
             override fun onFailure(call: Call<List<ImageData>>, t: Throwable) {
                 Log.e(MAIN_ACTIVITY, "Failed to get response", t)
             }
@@ -55,14 +55,23 @@ class MainActivity : AppCompatActivity() {
             ) {
                 if (response.isSuccessful) {
                     val image = response.body()
-                    val firstImage = image?.firstOrNull()?.imageUrl.orEmpty()
-                    if (firstImage.isNotBlank()) {
-                        imageLoader.loadImage(firstImage, imageResultView)
+                    val firstImage = image?.firstOrNull()
+
+                    // Ambil URL
+                    val imageUrl = firstImage?.imageUrl.orEmpty()
+
+                    // Ambil breed (kalau ada, kalau kosong → Unknown)
+                    val breedName = firstImage?.breeds?.firstOrNull()?.name ?: "Unknown"
+
+                    // Tampilkan gambar kalau ada URL
+                    if (imageUrl.isNotBlank()) {
+                        imageLoader.loadImage(imageUrl, imageResultView)
                     } else {
                         Log.d(MAIN_ACTIVITY, "Missing image URL")
                     }
-                    apiResponseView.text =
-                        getString(R.string.image_placeholder, firstImage)
+
+                    // Update text jadi breed name
+                    apiResponseView.text = getString(R.string.image_breed_placeholder, breedName)
                 } else {
                     Log.e(
                         MAIN_ACTIVITY, "Failed to get response\n" +
@@ -72,6 +81,7 @@ class MainActivity : AppCompatActivity() {
             }
         })
     }
+
 
     companion object {
         const val MAIN_ACTIVITY = "MAIN_ACTIVITY"
